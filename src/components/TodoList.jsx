@@ -1,28 +1,48 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+import { useSelector, useDispatch } from "react-redux";
+import { setTodoStatus } from "../redux/todoSlice";
 
-const TodoList = ({todos, handleDelete, handleEdit}) => {
+const TodoList = ({handleDelete, handleEdit}) => {
+
+    const tasks = useSelector((state)=>{
+		return state.todos;
+	});
+
+    const dispatch = useDispatch();
 
     return ( 
-        <div>
-        {todos.map((todo)=>{
+        <div className=''>
+        {tasks.map((itm)=>{
             return(
-            <div className="border-solid border border-black rounded-md p-4 my-2" key={todo.id}>
-                <div className="flex flex-row">
-                <p className='flex grow'>{todo.task}</p>
-                <button 
-                    className="ms-2 bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
-                    onClick={()=>handleEdit(todo.id)}
-                >
-                    <FontAwesomeIcon icon={faPenToSquare} />
-                </button>
-                <button 
-                    className="ms-2 bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
-                    onClick={()=> handleDelete(todo.id)}
-                >
-                    <FontAwesomeIcon icon={faTrash} />
-                </button>
-            </div>
+            <div className="p-2 my-2 bg-white" key={itm.id}>
+                <div className="flex flex-row items-center">
+                    <input 
+                        type="checkbox"
+                        className="w-4 h-4" 
+                        value={itm.completed}  
+                        onChange={() => {
+                            dispatch(
+                                setTodoStatus({ 
+                                    completed: !itm.completed,
+                                    id: itm.id })
+                            );
+                        }}
+                    />
+                    <p className={`ms-4 grow ${itm.completed ? "line-through" : "decoration-none"}`}>{itm.name}</p>
+                    <button 
+                        className="px-2 py-1 text-sky-500 ms-2"
+                        onClick={()=>handleEdit(itm.id)}
+                    >
+                        <FontAwesomeIcon icon={faPenToSquare} style={{height: 20}}/>
+                    </button>
+                    <button 
+                        className="px-2 py-1 text-red-500"
+                        onClick={()=> handleDelete(itm.id)}
+                    >
+                        <FontAwesomeIcon icon={faTrash} style={{height: 20}}/>
+                    </button>
+                </div>
             </div>
             );
         })}

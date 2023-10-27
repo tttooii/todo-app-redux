@@ -2,87 +2,99 @@ import { useState } from "react";
 import TodoList from "./TodoList";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAdd } from '@fortawesome/free-solid-svg-icons'
-import { v4 as uuidv4 } from "uuid";
+import { useDispatch } from "react-redux";
+import { addTodo, deleteTodo, updateTodo, setTodoStatus } from "../redux/todoSlice";
 import EditTodo from "./EditTodo";
+import { useRef } from "react";
 
 const TodoForm = () => {
-    const [todos, setTodos] = useState([]);
     const[todo, setTodo] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [todoId, setTodoId] = useState();
-    const [currTodo, setCurrTodo] = useState();
+    const [isChecked, setIsChecked] = useState(false);
+
+    const dispatch = useDispatch();
+    const ref = useRef();
 
     function handlesubmit(e){
         e.preventDefault()
-        setTodos([
-            ...todos,
-            { id: uuidv4(), task: todo },
-          ]);
+
+        if(todo.trim().length === 0)
+		{
+			alert("Enter a task before adding !!");
+			setValue("");
+			return;
+		}
+          dispatch(
+			addTodo({
+                task: todo,
+                completed: isChecked
+			})
+		);
+        ref.current.reset();
+          
     }
 
     function handleDelete(id){
-        const newTodos = todos.filter((item) => {
-            return item.id !== id
-        })
-        setTodos(newTodos);   
+        dispatch(
+			deleteTodo({
+				id: id
+			})
+		)
     }
 
     function handleEdit(id){
-        setIsOpen(true);
-        setTodoId(id);
+         setTodoId(id);
+         setIsOpen(true);
+     }
+
+     function handleChange(e){
+        setTodo({...todo, [e.target.name]: e.target.value})
+        //console.log(todo)
+     }
+     
+     function handleUpdate(id){
+        //console.log(todo.task)
+        dispatch(
+            updateTodo({
+                id: id,
+                task: todo.task,
+            })
+        )
     }
-
-    function handleTodoChange(e){
-        setCurrTodo({ ...currTodo, task:e.target.value });
-
-    }
-
-    function handleUpdate(id){
-        const newTodo = todos.map(itm => {
-            if(itm.id === id){
-                return {...itm, task: currTodo.task};
-            }
-            return itm;
-        });
-        setTodos(newTodo);
-
-    }
+ 
     return ( 
-        <div className="mx-auto max-w-md py-8">
-            <div className="shadow-md rounded-md bg-slate-50">
-                <div className="p-4">
-                    <h2 className="text-3xl mb-4 text-center">Todo</h2>
-                    <form className="mb-8" onSubmit={handlesubmit}>
-                        <div className="flex flex-row space-x-2">
-                            <input 
-                                className="shadow rounded-md bg-gray-200 px-2 py-1 grow" 
-                                placeholder="Enter a task"
-                                onChange={(e)=> setTodo(e.target.value)}
-                                required
-                            />
-                            <button 
-                                className="rounded-md bg-green-500 px-2 py-1 text-white hover:bg-green-600"
-                            >   
-                                <FontAwesomeIcon icon={faAdd} className="me-2"/>
-                                Add
-                            </button>
-                        </div>
-                    </form>
-                    <TodoList 
-                        todos={todos} 
-                        handleDelete={handleDelete} 
-                        handleEdit={handleEdit}
-                    /> 
-                    <EditTodo 
-                        isOpen={isOpen} 
-                        setIsOpen={setIsOpen} 
-                        todos={todos}
-                        todoId={todoId}
-                        handleTodoChange={handleTodoChange}
-                        handleUpdate={handleUpdate}
-                    />      
-                </div>
+        <div className="max-w-xl mx-auto rounded">
+            <div className="mb-4 text-3xl font-semibold text-white">Task</div>
+            <div className="mb-4">
+                <form onSubmit={handlesubmit} ref={ref}>
+                    <div className="flex flex-row gap-1">
+                        <input 
+                            className="px-3 py-2 placeholder-gray-500 shadow grow focus:outline-none focus:border-black focus:ring-1 focus:ring-black" 
+                            placeholder="Enter a task"
+                            onChange={(e)=> setTodo(e.target.value)}
+                            required
+                        />
+                        <button 
+                            className="w-24 text-white bg-[#343434]"
+                        >   
+                            <FontAwesomeIcon icon={faAdd} className="me-3"/>
+                            Add
+                        </button>
+                    </div>
+                </form>
             </div>
+            <TodoList 
+                handleDelete={handleDelete}
+                handleEdit={handleEdit}
+            />
+            <EditTodo
+                isOpen={isOpen}
+                setIsOpen={setIsOpen} 
+                todoId={todoId}
+                handleChange={handleChange}
+                handleUpdate={handleUpdate}
+            />
         </div>
      );
 }
